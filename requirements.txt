@@ -1,3 +1,5 @@
 selenium
 pandas
 numpy
+pyexiv2
+keyboard
