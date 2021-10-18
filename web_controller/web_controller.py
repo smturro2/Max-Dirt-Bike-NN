@@ -92,18 +92,25 @@ class WebController:
         try:
             start_time = time.time()
             while True:
-                img_list.append(self.get_canvas_img())
+                img_list.append(self.driver.get_screenshot_as_base64())
                 key_info += self.get_current_inputs()
         except:
             total_time = time.time()-start_time
             count = len(img_list)
             print("Recording ended.")
-            print(f"Avg frames/sec : {count/total_time}")
-            print(f"Saving {count} images...",end="")
+            print(f"Saving {count} images...", end="")
             for i in range(count):
-                img_list[i].save(foldername + f"{i}.jpg", "JPEG")
-            open(foldername +"key_info.txt",'w').write(key_info)
-            print("DONE!")
+                screen_data = base64.b64decode(img_list[i])
+                image = Image.open(io.BytesIO(screen_data))
+                image = image.convert("L")  # Convert to greyscale
+                image = image.crop((self.canvas.location["x"] * self.pixel_ratio,
+                                    self.canvas.location["y"] * self.pixel_ratio,
+                                    self.canvas.location["x"] * self.pixel_ratio + self.canvas.size[
+                                        "width"] * self.pixel_ratio,
+                                    self.canvas.location["y"] * self.pixel_ratio + self.canvas.size[
+                                        "height"] * self.pixel_ratio))
+                image = image.resize((300, 300))
+                image.save(foldername + f"{i}.jpg", "JPEG")
 
 
     def start_record_list(self,num_iters):
