@@ -29,7 +29,6 @@ class WebController:
 
     def init_load(self):
         self.driver.get("https://cdn3.addictinggames.com/addictinggames-content/ag-assets/content-items/html5-games/maxdirtbike/index.html?unprocessed=true")
-        self.canvas = self.driver.find_element_by_tag_name("canvas")
 
         # # Wait for game to start
         # self.canvas = self.driver.find_element_by_tag_name("canvas")
@@ -79,6 +78,8 @@ class WebController:
 
     def start_record(self):
         run_number = np.random.randint(1000,9999)
+        self.canvas_location = self.driver.find_element_by_tag_name("canvas").location.copy()
+        self.canvas_size = self.driver.find_element_by_tag_name("canvas").size.copy()
         foldername = f"img/Run Data/run_{run_number}/"
         while os.path.isfile(foldername):
             run_number = np.random.randint(1000,9999)
@@ -97,20 +98,21 @@ class WebController:
         except:
             total_time = time.time()-start_time
             count = len(img_list)
-            print("Recording ended.")
+            print(f"Recording ended. Avg frames per sec {count/total_time}")
             print(f"Saving {count} images...", end="")
             for i in range(count):
                 screen_data = base64.b64decode(img_list[i])
                 image = Image.open(io.BytesIO(screen_data))
                 image = image.convert("L")  # Convert to greyscale
-                image = image.crop((self.canvas.location["x"] * self.pixel_ratio,
-                                    self.canvas.location["y"] * self.pixel_ratio,
-                                    self.canvas.location["x"] * self.pixel_ratio + self.canvas.size[
+                image = image.crop((self.canvas_location["x"] * self.pixel_ratio,
+                                    self.canvas_location["y"] * self.pixel_ratio,
+                                    self.canvas_location["x"] * self.pixel_ratio + self.canvas_size[
                                         "width"] * self.pixel_ratio,
-                                    self.canvas.location["y"] * self.pixel_ratio + self.canvas.size[
+                                    self.canvas_location["y"] * self.pixel_ratio + self.canvas_size[
                                         "height"] * self.pixel_ratio))
                 image = image.resize((300, 300))
                 image.save(foldername + f"{i}.jpg", "JPEG")
+            print("DONE!")
 
 
     def start_record_list(self,num_iters):
